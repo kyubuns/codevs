@@ -1,5 +1,4 @@
 #include "Solver.h"
-#include "Task.h"
 #include <iostream>
 #include <set>
 #include <queue>
@@ -35,7 +34,7 @@ bool Wallet::check(const Task &task, const Towers &towers) const
 bool Wallet::buy(const Task &task, Towers *towers)
 {
 	int cost = price(task, *towers);
-	if(m_money < cost) return false;
+	if(m_money < cost || cost == 0) return false;
 
 	m_money -= cost;
 	for(int i=0; i<towers->size(); ++i)
@@ -53,14 +52,41 @@ bool Wallet::buy(const Task &task, Towers *towers)
 }
 
 //==========Solver==========
-void Solver::run(const LevelData &levelData)
+Solver::Solver(const StageData &stageData, const LevelData &levelData)
+: stage(stageData), level(levelData), wallet(level.money), towers(level.towers), map(createMap(stage.map, towers))
 {
-	Wallet wallet(levelData.money);
-	TaskList taskList;
+}
 
-
-
+Solver::~Solver()
+{
 	taskList.output();
+}
+
+bool Solver::check(const Task &task)
+{
+	const Point &p = task.point;
+
+	if(map[task.point.x][task.point.y] != '0'
+		|| !wallet.check(task, towers)
+		)
+		return false;
+
+	map[p.x][p.y] = 't';
+	bool check = canGoal(map);
+	map[p.x][p.y] = '0';
+	if(!check) return false;
+
+	return true;
+}
+
+bool Solver::build(const Task &task)
+{
+	const Point &p = task.point;
+
+	if(!wallet.buy(task, &towers)) return false;
+	taskList.addTask(task);
+	map[p.x][p.y] = 't';
+	return true;
 }
 
 MapData Solver::createMap(const MapInfo &mapInfo, const Towers &towers)
@@ -75,18 +101,15 @@ MapData Solver::createMap(const MapInfo &mapInfo, const Towers &towers)
 	return map;
 }
 
-bool Solver::canGoal(const Towers &towers)
+bool Solver::canGoal(const MapData &fmap)
 {
-	//タワー情報入りのマップデータ作る
-	MapData fmap(createMap(stage.map, towers));
-
 	set<Point> checkedStart;
 	for(auto it = stage.map.starts.begin(), end = stage.map.starts.end(); it != end; ++it)
 	{
 		if(checkedStart.find(*it) != checkedStart.end()) continue;
 
 		priority_queue<pair<int, Point>> que;	//距離, ポイント
-		MapData map(fmap);
+		MapData mapcopy(fmap);
 		que.push(make_pair(0, Point(it->x, it->y)));
 		bool findGoal = false;
 		while(!que.empty())
@@ -95,15 +118,15 @@ bool Solver::canGoal(const Towers &towers)
 			Point p = que.top().second;
 			que.pop();
 			
-			if(map[p.x][p.y] == 'g')
+			if(mapcopy[p.x][p.y] == 'g')
 			{
 				findGoal = true;
 				break;
 			}
-			if(map[p.x][p.y] == 's') checkedStart.insert(p);
-			if(map[p.x][p.y] != '0' && map[p.x][p.y] != 's') continue;
+			if(mapcopy[p.x][p.y] == 's') checkedStart.insert(p);
+			if(mapcopy[p.x][p.y] != '0' && mapcopy[p.x][p.y] != 's') continue;
 
-			map[p.x][p.y] = 'x';
+			mapcopy[p.x][p.y] = 'x';
 			que.push(make_pair(r-1, Point(p.x, p.y+1)));
 			que.push(make_pair(r-1, Point(p.x+1, p.y)));
 			que.push(make_pair(r-1, Point(p.x, p.y-1)));
@@ -113,3 +136,4 @@ bool Solver::canGoal(const Towers &towers)
 	}
 	return true;
 }
+

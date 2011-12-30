@@ -50,15 +50,6 @@ struct StageData
 	StageData(const MapInfo &map, int level) : map(map), level(level) {}
 };
 
-struct Tower
-{
-	Point point;
-	int level, kind;
-
-	Tower(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
-};
-typedef vector<Tower> Towers;
-
 struct Task
 {
 	Point point;
@@ -66,6 +57,16 @@ struct Task
 
 	Task(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
 };
+
+struct Tower
+{
+	Point point;
+	int level, kind;
+
+	Tower(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
+	Tower(const Task &task) : point(task.point), level(task.level), kind(task.kind) {}
+};
+typedef vector<Tower> Towers;
 
 struct Enemy
 {
