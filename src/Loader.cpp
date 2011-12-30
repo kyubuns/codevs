@@ -8,7 +8,7 @@ const StageData Loader::LoadStage()
 {
 	int W,H;
 	cin >> W >> H;
-	vector<vector<char>> mapData(W, vector<char>(H));
+	MapData mapData(W, vector<char>(H));
 	Points starts;
 	Points goals;
 	for(int h=0;h<H;++h)
@@ -33,7 +33,7 @@ const StageData Loader::LoadStage()
 	cin >> check;
 	if(check != "END") throw "check is not END";
 
-	return StageData(MapData(W, H, mapData, starts, goals), L);
+	return StageData(MapInfo(W, H, mapData, starts, goals), L);
 }
 
 const LevelData Loader::LoadLevel()
@@ -43,7 +43,7 @@ const LevelData Loader::LoadLevel()
 	cin >> Lp >> M >> T >> E;
 
 	//タワー
-	vector<Tower> towers;
+	Towers towers;
 	towers.reserve(T);
 	for(int i=0; i<T; ++i)
 	{
@@ -53,7 +53,7 @@ const LevelData Loader::LoadLevel()
 	}
 
 	//エネミー
-	vector<Enemy> enemies;
+	Enemies enemies;
 	enemies.reserve(E);
 	for(int i=0; i<E; ++i)
 	{

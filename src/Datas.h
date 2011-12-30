@@ -1,5 +1,12 @@
 #include <vector>
+#include <array>
 using namespace std;
+
+namespace rule
+{
+	static const array<int, 3> COST = {10, 15, 20};
+	static const int UPGRADE_MAX_LEVEL = 4;
+}
 
 struct Point
 {
@@ -10,6 +17,10 @@ struct Point
 	{
 		return (x == other.x && y == other.y);
 	}
+	bool operator != (const Point &other) const
+	{
+		return !(*this == other);
+	}
 	bool operator < (const Point &other) const
 	{
 		return (x*1000 + y < other.x*1000 + other.y);
@@ -17,25 +28,26 @@ struct Point
 };
 typedef vector<Point> Points;
 
-struct MapData
+typedef vector<vector<char>> MapData;
+struct MapInfo
 {
 	int width, height;
-	vector<vector<char>> data;
+	MapData data;
 	Points starts;
 	Points goals;
 
-	MapData(int width, int height,
-			const vector<vector<char>> &data,
+	MapInfo(int width, int height,
+			const MapData &data,
 			const Points &starts,const Points &goals)
 		: width(width), height(height), data(data), starts(starts), goals(goals) {}
 };
 
 struct StageData
 {
-	MapData map;
+	MapInfo map;
 	int level;
 
-	StageData(const MapData &map, int level) : map(map), level(level) {}
+	StageData(const MapInfo &map, int level) : map(map), level(level) {}
 };
 
 struct Tower
@@ -45,6 +57,15 @@ struct Tower
 
 	Tower(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
 };
+typedef vector<Tower> Towers;
+
+struct Task
+{
+	Point point;
+	int level, kind;
+
+	Task(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
+};
 
 struct Enemy
 {
@@ -53,13 +74,14 @@ struct Enemy
 
 	Enemy(const Point &point, int time, int life, int speed) : point(point), time(time), life(life), speed(speed) {}
 };
+typedef vector<Enemy> Enemies;
 
 struct LevelData
 {
 	int life, money;
-	vector<Tower> towers;
-	vector<Enemy> enemies;
+	Towers towers;
+	Enemies enemies;
 
-	LevelData(int life, int money, const vector<Tower> &towers, const vector<Enemy> &enemies) : life(life), money(money), towers(towers), enemies(enemies) {}
+	LevelData(int life, int money, const Towers &towers, const Enemies &enemies) : life(life), money(money), towers(towers), enemies(enemies) {}
 };
 
