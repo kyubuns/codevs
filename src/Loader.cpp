@@ -31,7 +31,11 @@ const StageData Loader::LoadStage()
 	//チェック
 	string check;
 	cin >> check;
-	if(check != "END") throw "check is not END";
+	if(check != "END")
+	{
+		cerr << "LoadStage : check is not END" << endl;
+		throw "check is not END";
+	}
 
 	return StageData(MapInfo(W, H, mapData, starts, goals), L);
 }
@@ -65,7 +69,11 @@ const LevelData Loader::LoadLevel()
 	//チェック
 	string check;
 	cin >> check;
-	if(check != "END") throw "check is not END";
+	if(check != "END")
+	{
+		cerr << "LoadLevel : check is not END" << endl;
+		throw "check is not END";
+	}
 
 	return LevelData(Lp, M, towers, enemies);
 }

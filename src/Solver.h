@@ -28,8 +28,8 @@ protected:
 	bool canGoal(const MapData &fmap);
 	bool check(const Task &task);
 	bool build(const Task &task);
-	const Towers &towers() { return m_towers; }
-	const MapData &map() { return m_map; }
+	const Towers &getTowers() { return m_towers; }
+	const MapData &getMap() { return m_map; }
 
 protected:
 	const StageData stage;

@@ -1,5 +1,6 @@
 #include <vector>
 #include <array>
+#include <iostream>
 using namespace std;
 
 namespace rule
@@ -12,7 +13,9 @@ struct Point
 {
 	int x,y;
 
+	Point() : x(0), y(0) {}
 	Point(int x, int y) : x(x), y(y) {}
+	void print() { cout << "Point:(" << x << "," << y << ")"; }
 	bool operator == (const Point &other) const
 	{
 		return (x == other.x && y == other.y);
@@ -40,6 +43,22 @@ struct MapInfo
 			const MapData &data,
 			const Points &starts,const Points &goals)
 		: width(width), height(height), data(data), starts(starts), goals(goals) {}
+
+	void print()
+	{
+		cout << " --Map-- " << endl;
+		int W = width;
+		int H = height;
+		for(int h=0;h<H;++h)
+		{
+			for(int w=0;w<W;++w)
+			{
+				cout << data[w][h];
+			}
+			cout << endl;
+		}
+		cout << " ------- " << endl;
+	}
 };
 
 struct StageData
@@ -50,12 +69,15 @@ struct StageData
 	StageData(const MapInfo &map, int level) : map(map), level(level) {}
 };
 
+struct Tower;
 struct Task
 {
 	Point point;
 	int level, kind;
 
 	Task(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
+	Task(const Tower &tower);
+	void print() { cout << "Task:(" << point.x << "," << point.y << ")" << ", L" << level << ", K" << kind << endl; }
 };
 
 struct Tower
@@ -67,6 +89,7 @@ struct Tower
 	Tower(const Task &task) : point(task.point), level(task.level), kind(task.kind) {}
 };
 typedef vector<Tower> Towers;
+inline Task::Task(const Tower &tower) : point(tower.point), level(tower.level), kind(tower.kind) {}
 
 struct Enemy
 {

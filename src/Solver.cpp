@@ -67,9 +67,9 @@ bool Solver::check(const Task &task)
 	const Point &p = task.point;
 
 	if(m_map[task.point.x][task.point.y] != '0'
-		|| !wallet.check(task, m_towers)
-		)
-		return false;
+			&& m_map[task.point.x][task.point.y] != 't') return false;
+	if(task.kind != -1 && !wallet.check(task, m_towers)) return false;
+	if(task.level != -1 && task.level > rule::UPGRADE_MAX_LEVEL) return false;
 
 	m_map[p.x][p.y] = 't';
 	bool check = canGoal(m_map);
@@ -136,4 +136,3 @@ bool Solver::canGoal(const MapData &fmap)
 	}
 	return true;
 }
-

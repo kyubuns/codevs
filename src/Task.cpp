@@ -17,5 +17,6 @@ void TaskList::output()
 		const Task &task = *it;
 		cout << task.point.x << " " << task.point.y << " " << task.level << " " << task.kind << endl;
 	}
+	cout.flush();
 }
 
