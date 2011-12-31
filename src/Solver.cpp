@@ -62,12 +62,33 @@ Solver::~Solver()
 	taskList.output();
 }
 
+void Solver::printMap()
+{
+	cout << endl;
+	int W = stage.map.width;
+	int H = stage.map.height;
+	for(int h=0;h<H;++h)
+	{
+		for(int w=0;w<W;++w)
+		{
+			cout << ((m_map[w][h]=='0')?' ':m_map[w][h]);
+		}
+		cout << endl;
+	}
+	cout << endl;
+}
+
 bool Solver::check(const Task &task)
 {
 	const Point &p = task.point;
 
 	if(m_map[task.point.x][task.point.y] != '0'
 			&& m_map[task.point.x][task.point.y] != 't') return false;
+	for(int i=0;i<m_towers.size();++i)
+	{
+		Tower &tower = m_towers[i];
+		if(tower.point == task.point && tower.kind == task.kind && tower.level >= task.level) return false;
+	}
 	if(task.kind != -1 && !wallet.check(task, m_towers)) return false;
 	if(task.level != -1 && task.level > rule::UPGRADE_MAX_LEVEL) return false;
 

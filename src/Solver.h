@@ -22,6 +22,7 @@ public:
 	Solver(const StageData &stageData, const LevelData &levelData);
 	virtual ~Solver();
 	virtual void run() = 0;
+	void printMap();
 
 protected:
 	MapData createMap(const MapInfo &mapInfo, const Towers &towers);

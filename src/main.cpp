@@ -5,23 +5,19 @@
 #include "Solver.h"
 using namespace std;
 
-class MainSolver : public Solver
+class OldSolver : public Solver
 {
 public:
-	MainSolver(const StageData &stageData, const LevelData &levelData) : Solver(stageData, levelData) {}
+	OldSolver(const StageData &stageData, const LevelData &levelData) : Solver(stageData, levelData) {}
 	void run();
 
 private:
 	static const int BUILD_TOWER = 1;
 	static const int CHECK_BUILD_HP = 4;
-	static const int CHECK_BUILD_TOWER = 1;
-
-	static const int UPGRADE_TOWER = 4;
-	static const int CHECK_UPGRADE_HP = 2;
-	static const int CHECK_UPGRADE_TOWER = 4;
+	static const int CHECK_BUILD_TOWER = 2;
 };
 
-void MainSolver::run()
+void OldSolver::run()
 {
 	//設置
 	static const int dx[] = {-1,  0,  1,  1,  1,  0, -1 ,-1};
@@ -37,20 +33,19 @@ void MainSolver::run()
 			for(int i = 0; i < 8; ++i) if(map[p.x + dx[i]][p.y + dy[i]] == 't') towerCount++;
 			if(towerCount >= CHECK_BUILD_TOWER || (level.life >= CHECK_BUILD_HP && towerCount >= BUILD_TOWER)) break;
 
-			//無いので設置
-			//--置けるか確認
-			Point memo;//todo:optional<Task>にする
+			//置けるか確認
+			Task memo;
+			bool hoge = false;
 			for(int i = 0; i < 8; ++i)
 			{
 				Task task = Task(Point(p.x + dx[i], p.y + dy[i]), 0, 0);
 				if(!check(task)) continue;
-				memo = Point(p.x + dx[i], p.y + dy[i]);
+				memo = task;
+				hoge = true;
 				break;
 			}
-			if(memo == Point(0,0)) break;
-
-			const int kind = 0;
-			build(Task(memo, 0, kind));
+			if(!hoge) break;
+			build(memo);
 		}
 	}
 
@@ -74,11 +69,12 @@ void MainSolver::run()
 		build(task);
 		continue;
 	}
-	cout.flush();
 }
 
 int main()
 {
+	ios_base::sync_with_stdio(false);
+
 	//ステージ数
 	int S;
 	cin >> S;
@@ -88,14 +84,9 @@ int main()
 		for(int l=0; l<stageData.level; ++l)
 		{
 			const LevelData levelData = Loader::LoadLevel();
-			MainSolver solver(stageData, levelData);
-			try{
-				solver.run();
-			}
-			catch(string mes)
-			{
-				cout << "ERROR : " << mes << endl;
-			}
+			OldSolver solver(stageData, levelData);
+			solver.run();
+			//solver.printMap();
 		}
 	}
 	return 0;

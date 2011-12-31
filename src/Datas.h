@@ -75,6 +75,7 @@ struct Task
 	Point point;
 	int level, kind;
 
+	Task() {}
 	Task(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
 	Task(const Tower &tower);
 	void print() { cout << "Task:(" << point.x << "," << point.y << ")" << ", L" << level << ", K" << kind << endl; }
