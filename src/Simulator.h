@@ -1,6 +1,23 @@
 #pragma once
 #include "Datas.h"
 
+class ActEnemy
+{
+public:
+	ActEnemy(const Enemy &enemy);
+	bool update();
+	void move(int id);
+	Point &getPoint() { return point; }
+
+private:
+	void resetCounter();
+
+private:
+	Point point;
+	int counter;
+	const Enemy data;
+};
+
 class Simulator
 {
 public:
