@@ -28,17 +28,17 @@ protected:
 	bool canGoal(const MapData &fmap);
 	bool check(const Task &task);
 	bool build(const Task &task);
+	const Towers &towers() { return m_towers; }
+	const MapData &map() { return m_map; }
 
 protected:
 	const StageData stage;
 	const LevelData level;
 
 private:
-	Towers towers;
 	Wallet wallet;
 	TaskList taskList;
-
-protected:
-	MapData map;
+	Towers m_towers;
+	MapData m_map;
 };
 

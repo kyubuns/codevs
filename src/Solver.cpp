@@ -53,7 +53,7 @@ bool Wallet::buy(const Task &task, Towers *towers)
 
 //==========Solver==========
 Solver::Solver(const StageData &stageData, const LevelData &levelData)
-: stage(stageData), level(levelData), wallet(level.money), towers(level.towers), map(createMap(stage.map, towers))
+: stage(stageData), level(levelData), wallet(level.money), m_towers(level.towers), m_map(createMap(stage.map, m_towers))
 {
 }
 
@@ -66,14 +66,14 @@ bool Solver::check(const Task &task)
 {
 	const Point &p = task.point;
 
-	if(map[task.point.x][task.point.y] != '0'
-		|| !wallet.check(task, towers)
+	if(m_map[task.point.x][task.point.y] != '0'
+		|| !wallet.check(task, m_towers)
 		)
 		return false;
 
-	map[p.x][p.y] = 't';
-	bool check = canGoal(map);
-	map[p.x][p.y] = '0';
+	m_map[p.x][p.y] = 't';
+	bool check = canGoal(m_map);
+	m_map[p.x][p.y] = '0';
 	if(!check) return false;
 
 	return true;
@@ -83,9 +83,9 @@ bool Solver::build(const Task &task)
 {
 	const Point &p = task.point;
 
-	if(!wallet.buy(task, &towers)) return false;
+	if(!wallet.buy(task, &m_towers)) return false;
 	taskList.addTask(task);
-	map[p.x][p.y] = 't';
+	m_map[p.x][p.y] = 't';
 	return true;
 }
 
