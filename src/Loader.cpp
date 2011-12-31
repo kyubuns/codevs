@@ -19,8 +19,8 @@ const StageData Loader::LoadStage()
 			cin >> input;
 			
 			mapData[w][h] = input;
-			if(input == 's')		starts.push_back(Point(w,h));
-			else if(input == 'g')	goals.push_back(Point(w,h));
+			if(input == mark::START)		starts.push_back(Point(w,h));
+			else if(input == mark::GOAL)	goals.push_back(Point(w,h));
 		}
 	}
 

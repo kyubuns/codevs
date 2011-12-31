@@ -1,3 +1,4 @@
+#pragma once
 #include "Datas.h"
 #include "Task.h"
 

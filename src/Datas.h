@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <array>
 #include <iostream>
@@ -9,13 +10,22 @@ namespace rule
 	static const int UPGRADE_MAX_LEVEL = 4;
 }
 
+namespace mark
+{
+	static const char EMPTY = '0';
+	static const char WALL  = '1';
+	static const char TOWER = 't';
+	static const char START = 's';
+	static const char GOAL  = 'g';
+}
+
 struct Point
 {
 	int x,y;
 
 	Point() : x(0), y(0) {}
 	Point(int x, int y) : x(x), y(y) {}
-	void print() { cout << "Point:(" << x << "," << y << ")"; }
+	void print() { cout << "Point:(" << x << "," << y << ")" << endl; }
 	bool operator == (const Point &other) const
 	{
 		return (x == other.x && y == other.y);

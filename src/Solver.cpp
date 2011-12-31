@@ -71,7 +71,7 @@ void Solver::printMap()
 	{
 		for(int w=0;w<W;++w)
 		{
-			cout << ((m_map[w][h]=='0')?' ':m_map[w][h]);
+			cout << ((m_map[w][h]==mark::EMPTY)?' ':m_map[w][h]);
 		}
 		cout << endl;
 	}
@@ -82,8 +82,8 @@ bool Solver::check(const Task &task)
 {
 	const Point &p = task.point;
 
-	if(m_map[task.point.x][task.point.y] != '0'
-			&& m_map[task.point.x][task.point.y] != 't') return false;
+	if(m_map[task.point.x][task.point.y] != mark::EMPTY
+			&& m_map[task.point.x][task.point.y] != mark::TOWER) return false;
 	for(int i=0;i<m_towers.size();++i)
 	{
 		Tower &tower = m_towers[i];
@@ -92,9 +92,9 @@ bool Solver::check(const Task &task)
 	if(task.kind != -1 && !wallet.check(task, m_towers)) return false;
 	if(task.level != -1 && task.level > rule::UPGRADE_MAX_LEVEL) return false;
 
-	m_map[p.x][p.y] = 't';
+	m_map[p.x][p.y] = mark::TOWER;
 	bool check = canGoal(m_map);
-	m_map[p.x][p.y] = '0';
+	m_map[p.x][p.y] = mark::EMPTY;
 	if(!check) return false;
 
 	return true;
@@ -106,7 +106,7 @@ bool Solver::build(const Task &task)
 
 	if(!wallet.buy(task, &m_towers)) return false;
 	taskList.addTask(task);
-	m_map[p.x][p.y] = 't';
+	m_map[p.x][p.y] = mark::TOWER;
 	return true;
 }
 
@@ -117,13 +117,16 @@ MapData Solver::createMap(const MapInfo &mapInfo, const Towers &towers)
 		for(int w=0; w<mapInfo.width; ++w)
 			map[w][h] = mapInfo.data[w][h];
 
-	for(int i=0; i<towers.size(); ++i) map[towers[i].point.x][towers[i].point.y] = 't';
+	for(int i=0; i<towers.size(); ++i) map[towers[i].point.x][towers[i].point.y] = mark::TOWER;
 	
 	return map;
 }
 
 bool Solver::canGoal(const MapData &fmap)
 {
+	using namespace mark;
+	static const char CHECKED = 'x';
+
 	set<Point> checkedStart;
 	for(auto it = stage.map.starts.begin(), end = stage.map.starts.end(); it != end; ++it)
 	{
@@ -139,15 +142,15 @@ bool Solver::canGoal(const MapData &fmap)
 			Point p = que.top().second;
 			que.pop();
 			
-			if(mapcopy[p.x][p.y] == 'g')
+			if(mapcopy[p.x][p.y] == GOAL)
 			{
 				findGoal = true;
 				break;
 			}
-			if(mapcopy[p.x][p.y] == 's') checkedStart.insert(p);
-			if(mapcopy[p.x][p.y] != '0' && mapcopy[p.x][p.y] != 's') continue;
+			if(mapcopy[p.x][p.y] ==  START) checkedStart.insert(p);
+			if(mapcopy[p.x][p.y] != EMPTY && mapcopy[p.x][p.y] != START) continue;
 
-			mapcopy[p.x][p.y] = 'x';
+			mapcopy[p.x][p.y] = CHECKED;
 			que.push(make_pair(r-1, Point(p.x, p.y+1)));
 			que.push(make_pair(r-1, Point(p.x+1, p.y)));
 			que.push(make_pair(r-1, Point(p.x, p.y-1)));

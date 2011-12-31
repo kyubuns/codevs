@@ -3,6 +3,7 @@
 #include <ctime>
 #include "Loader.h"
 #include "Solver.h"
+#include "Simulator.h"
 using namespace std;
 
 class OldSolver : public Solver
@@ -19,6 +20,8 @@ private:
 
 void OldSolver::run()
 {
+	using namespace mark;
+
 	//設置
 	static const int dx[] = {-1,  0,  1,  1,  1,  0, -1 ,-1};
 	static const int dy[] = {-1, -1, -1,  0,  1,  1,  1,  0};
@@ -30,7 +33,7 @@ void OldSolver::run()
 			//近くにあるか確認
 			int towerCount = 0;
 			Point p = *it;
-			for(int i = 0; i < 8; ++i) if(map[p.x + dx[i]][p.y + dy[i]] == 't') towerCount++;
+			for(int i = 0; i < 8; ++i) if(map[p.x + dx[i]][p.y + dy[i]] == TOWER) towerCount++;
 			if(towerCount >= CHECK_BUILD_TOWER || (level.life >= CHECK_BUILD_HP && towerCount >= BUILD_TOWER)) break;
 
 			//置けるか確認
@@ -87,6 +90,9 @@ int main()
 			OldSolver solver(stageData, levelData);
 			solver.run();
 			//solver.printMap();
+			Simulator::getInstance().run(stageData.map, levelData.towers, levelData.enemies);
+			string hoge;
+			cin >> hoge;
 		}
 	}
 	return 0;
