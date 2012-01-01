@@ -8,7 +8,7 @@ public:
 	ActEnemy(int id, const Enemy &enemy);
 	int update(int time);
 	void move(int id);
-	bool damage(int point);
+	bool damage(const Tower &data);
 	void kill();
 	bool isActive() const { return (active && !dead); }
 	const Point &getPoint() const { return point; }

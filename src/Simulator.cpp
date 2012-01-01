@@ -188,7 +188,7 @@ vector<int> Simulator::run(const MapInfo &mapInfo, const Towers &towers, const E
 
 			if(DEBUG) cout << "TOWER" << tower.getId() << " Ready" << endl;
 			if(DEBUG) cout << "     => Attack" << endl;
-			attackEnemy.push_back(make_pair(enemyId, tower.data.getPower()));
+			attackEnemy.push_back(make_pair(enemyId, i));
 		}
 		
 		//• 全ての攻撃可能なタワーが攻撃対象を選択した後、全てのタワーが一斉に攻撃対象に攻撃力
@@ -196,12 +196,15 @@ vector<int> Simulator::run(const MapInfo &mapInfo, const Towers &towers, const E
 		for(auto it=attackEnemy.begin(), end=attackEnemy.end(); it != end; ++it)
 		{
 			int enemyId = it->first;
-			int point = it->second;
+			ActTower &tower = actTowers[it->second];
 			ActEnemy &enemy = actEnemies[enemyId];
 
 			if(!enemy.isActive()) continue;
-			if(enemy.damage(point)) deadEnemy.push_back(enemyId);
-			if(!enemy.isActive()) restEnemy--;
+			if(enemy.damage(tower.data))
+			{
+				deadEnemy.push_back(enemyId);
+				restEnemy--;
+			}
 		}
 		
 		//• ライフが 1 以上の敵が防衛マスにたどり着いていた場合 (行動不能時間中である場合も含み ます)、プレイヤーのライフが 1 減り敵が消滅します。
@@ -280,11 +283,20 @@ void ActEnemy::move(int id)
 	resetCounter();
 }
 
-bool ActEnemy::damage(int point)
+bool ActEnemy::damage(const Tower &data)
 {
 	if(DEBUG) cout << "    ENEMY" << getId() << " - Life : " << life;
-	life -= point;
+	life -= data.getPower();
 	if(DEBUG) cout << " => " << life << endl;
+
+	//フリーズ処理
+	if(data.kind == 2)
+	{
+		int tmp = (data.getSpeed()/10);
+		counter[0] += tmp;
+		counter[1] += tmp;
+	}
+
 	if(life < 0)
 	{
 		kill();
