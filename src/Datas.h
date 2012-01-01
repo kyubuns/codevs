@@ -6,10 +6,10 @@ using namespace std;
 
 namespace rule
 {
-	static const array<int, 3> COST  = {10, 15, 20};
-	static const array<int, 3> R     = {4, 5, 2};
-	static const array<int, 3> POWER = {10, 20, 3};
-	static const array<int, 3> SPEED = {10, 20, 20};
+	static const array<int, 3> COST  = {{10, 15, 20}};
+	static const array<int, 3> R     = {{4, 5, 2}};
+	static const array<int, 3> POWER = {{10, 20, 3}};
+	static const array<int, 3> SPEED = {{10, 20, 20}};
 	static const int UPGRADE_MAX_LEVEL = 4;
 }
 
@@ -28,7 +28,7 @@ struct Point
 
 	Point() : x(0), y(0) {}
 	Point(int x, int y) : x(x), y(y) {}
-	void print() { cout << "Point:(" << x << "," << y << ")" << endl; }
+	void print() const { cout << "Point:(" << x << "," << y << ")" << endl; }
 	bool operator == (const Point &other) const
 	{
 		return (x == other.x && y == other.y);
@@ -57,7 +57,7 @@ struct MapInfo
 			const Points &starts,const Points &goals)
 		: width(width), height(height), data(data), starts(starts), goals(goals) {}
 
-	void print()
+	void print() const
 	{
 		cout << " --Map-- " << endl;
 		int W = width;
@@ -91,7 +91,7 @@ struct Task
 	Task() {}
 	Task(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
 	Task(const Tower &tower);
-	void print() { cout << "Task:(" << point.x << "," << point.y << ")" << ", L" << level << ", K" << kind << endl; }
+	void print() const { cout << "Task:(" << point.x << "," << point.y << ")" << ", L" << level << ", K" << kind << endl; }
 };
 
 struct Tower

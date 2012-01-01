@@ -4,18 +4,20 @@
 #include <list>
 using namespace std;
 
+const static bool DEBUG = false;
+
 namespace dir
 {
-	static const array<int, 8> x    = {  1,  1,  0, -1, -1, -1,  0,  1};
-	static const array<int, 8> y    = {  0, -1, -1, -1,  0,  1,  1,  1};
-	static const array<int, 8> cost = {  2,  3,  2,  3,  2,  3,  2,  3};
+	static const array<int, 8> x    = {{  1,  1,  0, -1, -1, -1,  0,  1}};
+	static const array<int, 8> y    = {{  0, -1, -1, -1,  0,  1,  1,  1}};
+	static const array<int, 8> cost = {{  2,  3,  2,  3,  2,  3,  2,  3}};
 };
 
 namespace rdir
 {
-	static const array<int, 8> x    = {  1,  0, -1, -1, -1,  0,  1,  1};
-	static const array<int, 8> y    = {  1,  1,  1,  0, -1, -1, -1,  0};
-	static const array<int, 8> cost = {  3,  2,  3,  2,  3,  2,  3,  2};
+	static const array<int, 8> x    = {{  1,  0, -1, -1, -1,  0,  1,  1}};
+	static const array<int, 8> y    = {{  1,  1,  1,  0, -1, -1, -1,  0}};
+	static const array<int, 8> cost = {{  3,  2,  3,  2,  3,  2,  3,  2}};
 };
 
 const MapData Simulator::createMap(const MapInfo &mapInfo, const Towers &towers) const
@@ -85,34 +87,37 @@ const MapData Simulator::createRouteMap(const MapData &map, const vector<Point> 
 	return route;
 }
 
-void Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies &enemies)
+int Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies &enemies)
 {
 	const MapData map(createMap(mapInfo, towers));
 	const MapData route(createRouteMap(map, mapInfo.starts, mapInfo.goals));
 
-	cout << endl;
-	int W = mapInfo.width;
-	int H = mapInfo.height;
-	for(int h=0;h<H;++h)
+	if(DEBUG)
 	{
-		for(int w=0;w<W;++w)
+		cout << endl;
+		int W = mapInfo.width;
+		int H = mapInfo.height;
+		for(int h=0;h<H;++h)
 		{
-			if(map[w][h] != mark::EMPTY) cout << map[w][h];
-			else cout << " ";
+			for(int w=0;w<W;++w)
+			{
+				if(map[w][h] != mark::EMPTY) cout << map[w][h];
+				else cout << " ";
+			}
+			cout << endl;
+		}
+		for(int h=0;h<H;++h)
+		{
+			for(int w=0;w<W;++w)
+			{
+				if(route[w][h] > 10) cout << " ";
+				else cout << (int)(route[w][h]);
+				cout << " ";
+			}
+			cout << endl;
 		}
 		cout << endl;
 	}
-	for(int h=0;h<H;++h)
-	{
-		for(int w=0;w<W;++w)
-		{
-			if(route[w][h] > 100) cout << " ";
-			else cout << (int)(route[w][h]);
-			cout << " ";
-		}
-		cout << endl;
-	}
-	cout << endl;
 
 	int time = 0;
 	int damage = 0;
@@ -128,8 +133,8 @@ void Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies 
 
 	while(restEnemy > 0)
 	{
-		cout << endl;
-		cout << "===== time : " << time << "=====" << endl;
+		if(DEBUG) cout << endl;
+		if(DEBUG) cout << "===== time : " << time << "=====" << endl;
 
 		list<int> moveEnemies;
 		list<int> deadEnemy;
@@ -143,15 +148,17 @@ void Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies 
 			int result = enemy.update(time);
 			if(result == 4)
 			{
+				//born
 				moveEnemies.push_back(enemy.getId());
 				continue;
 			}
+			if(result == -1) continue;//dead
 			if(result < dir::cost[route[p.x][p.y]]) continue;
 
 			enemy.move(route[p.x][p.y]);
 			moveEnemies.push_back(enemy.getId());
-			cout << "ENEMY" << enemy.getId() << " - (" << copy.x << "," << copy.y << ") => (";
-			cout << p.x << "," << p.y << ")" << endl;
+			if(DEBUG) cout << "ENEMY" << enemy.getId() << " - MOVE(" << copy.x << "," << copy.y << ") => (";
+			if(DEBUG) cout << p.x << "," << p.y << ")" << endl;
 		}
 		
 		list<pair<int, int>> attackEnemy;
@@ -179,8 +186,8 @@ void Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies 
 			int enemyId = tower.attack();
 			if(enemyId == -1) continue;
 
-			cout << "TOWER" << tower.getId() << " Ready" << endl;
-			cout << "     => Attack" << endl;
+			if(DEBUG) cout << "TOWER" << tower.getId() << " Ready" << endl;
+			if(DEBUG) cout << "     => Attack" << endl;
 			attackEnemy.push_back(make_pair(enemyId, tower.data.getPower()));
 		}
 		
@@ -200,17 +207,19 @@ void Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies 
 		//• ライフが 1 以上の敵が防衛マスにたどり着いていた場合 (行動不能時間中である場合も含み ます)、プレイヤーのライフが 1 減り敵が消滅します。
 		for(auto it=moveEnemies.begin(); it != moveEnemies.end(); ++it)
 		{
-			ActEnemy &enemy = actEnemies[*it];
+			int enemyId = *it;
+			ActEnemy &enemy = actEnemies[enemyId];
 			if(!enemy.isActive()) continue;
 
 			const Point &p = enemy.getPoint();
-			if(route[p.x][p.y] != mark::GOAL) continue;
-
-			enemy.kill();
-			deadEnemy.push_back(*it);
-			restEnemy--;
-			damage++;
-			cout << "DAMAGE!! - " << damage << endl;
+			if(route[p.x][p.y] == mark::GOAL)
+			{
+				enemy.kill();
+				deadEnemy.push_back(enemyId);
+				restEnemy--;
+				damage++;
+				if(DEBUG) cout << "DAMAGE!! - " << enemyId << "("<< damage << ")" << endl;
+			}
 		}
 		
 		for(auto it=deadEnemy.begin(); it != deadEnemy.end(); ++it)
@@ -224,9 +233,10 @@ void Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies 
 
 		time++;
 	}
+	return damage;
 }
 
-ActEnemy::ActEnemy(int id, const Enemy &enemy) : data(enemy), point(), active(false), dead(false), id(id)
+ActEnemy::ActEnemy(int id, const Enemy &enemy) : data(enemy), point(), id(id), active(false), dead(false)
 {
 	point = data.point;
 	life = data.life;
@@ -246,13 +256,14 @@ int ActEnemy::update(int time)
 	bool bornFlag = false;
 	if(time == data.time)
 	{
-		cout << "Add Enemy : " << getId() << endl;
-		cout << "    Life  : " << life << endl;
-		cout << "    Speed : " << data.speed << endl;
+		if(DEBUG) cout << "Add Enemy : " << getId() << endl;
+		if(DEBUG) cout << "    Point : " << "(" << getPoint().x << "," << getPoint().y << ")" << endl;
+		if(DEBUG) cout << "    Life  : " << life << endl;
+		if(DEBUG) cout << "    Speed : " << data.speed << endl;
 		active = true;
 		bornFlag = true;
 	}
-	if(!isActive()) return 0;
+	if(!isActive()) return -1;
 
 	counter[0]--;
 	counter[1]--;
@@ -271,9 +282,9 @@ void ActEnemy::move(int id)
 
 bool ActEnemy::damage(int point)
 {
-	cout << "    ENEMY" << getId() << " - Life : " << life;
+	if(DEBUG) cout << "    ENEMY" << getId() << " - Life : " << life;
 	life -= point;
-	cout << " => " << life << endl;
+	if(DEBUG) cout << " => " << life << endl;
 	if(life < 0)
 	{
 		kill();
@@ -285,21 +296,21 @@ bool ActEnemy::damage(int point)
 void ActEnemy::kill()
 {
 	dead = true;
-	cout << "ENEMY" << getId() << " - DEAD!" << endl;
+	if(DEBUG) cout << "ENEMY" << getId() << " - DEAD!" << endl;
 }
 
 ActTower::ActTower(int id, const Tower &tower) : data(tower), counter(0), id(id)
 {
-	resetCounter();
-	cout << "Add Tower : " << id << endl;
-	cout << "    Power : " << data.getPower() << endl;
-	cout << "    Speed : " << data.getSpeed() << endl;
-	cout << "    R     : " << data.getR() << endl;
+	if(DEBUG) cout << "Add Tower : " << id << endl;
+	if(DEBUG) cout << "    Point : " << "(" << getPoint().x << "," << getPoint().y << ")" << endl;
+	if(DEBUG) cout << "    Power : " << data.getPower() << endl;
+	if(DEBUG) cout << "    Speed : " << data.getSpeed() << endl;
+	if(DEBUG) cout << "    R     : " << data.getR() << endl;
 }
 
 void ActTower::resetCounter()
 {
-	counter = data.getSpeed();
+	counter = data.getSpeed() + 1;
 }
 
 void ActTower::enterEnemy(int id, int time, const Enemy &data)

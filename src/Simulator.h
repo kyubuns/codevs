@@ -69,7 +69,7 @@ public:
 		return simulator;
 	}
 
-	void run(const MapInfo &mapInfo, const Towers &towers, const Enemies &enemies);
+	int run(const MapInfo &mapInfo, const Towers &towers, const Enemies &enemies);
 
 private:
 	bool canMove(const MapData &route, const Point &o, int i) const;

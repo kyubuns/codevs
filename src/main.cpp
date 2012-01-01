@@ -87,15 +87,16 @@ int main()
 		for(int l=0; l<stageData.level; ++l)
 		{
 			const LevelData levelData = Loader::LoadLevel();
+
+			/*
 			OldSolver solver(stageData, levelData);
 			solver.run();
+			*/
 
 			//solver.printMap();
-			/*
-			Simulator::getInstance().run(stageData.map, levelData.towers, levelData.enemies);
-			string hoge;
-			cin >> hoge;
-			*/
+			if(l==0)continue;
+			int result = Simulator::getInstance().run(stageData.map, levelData.towers, levelData.enemies);
+			cout << s+1 << " - " << l+1 << " => " << result << endl;
 		}
 	}
 	return 0;
