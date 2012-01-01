@@ -135,6 +135,30 @@ src/Loader.cpp.s:
 	$(MAKE) -f CMakeFiles/codevs.out.dir/build.make CMakeFiles/codevs.out.dir/src/Loader.cpp.s
 .PHONY : src/Loader.cpp.s
 
+src/OldSolver.o: src/OldSolver.cpp.o
+.PHONY : src/OldSolver.o
+
+# target to build an object file
+src/OldSolver.cpp.o:
+	$(MAKE) -f CMakeFiles/codevs.out.dir/build.make CMakeFiles/codevs.out.dir/src/OldSolver.cpp.o
+.PHONY : src/OldSolver.cpp.o
+
+src/OldSolver.i: src/OldSolver.cpp.i
+.PHONY : src/OldSolver.i
+
+# target to preprocess a source file
+src/OldSolver.cpp.i:
+	$(MAKE) -f CMakeFiles/codevs.out.dir/build.make CMakeFiles/codevs.out.dir/src/OldSolver.cpp.i
+.PHONY : src/OldSolver.cpp.i
+
+src/OldSolver.s: src/OldSolver.cpp.s
+.PHONY : src/OldSolver.s
+
+# target to generate assembly for a file
+src/OldSolver.cpp.s:
+	$(MAKE) -f CMakeFiles/codevs.out.dir/build.make CMakeFiles/codevs.out.dir/src/OldSolver.cpp.s
+.PHONY : src/OldSolver.cpp.s
+
 src/Simulator.o: src/Simulator.cpp.o
 .PHONY : src/Simulator.o
 
@@ -243,6 +267,9 @@ help:
 	@echo "... src/Loader.o"
 	@echo "... src/Loader.i"
 	@echo "... src/Loader.s"
+	@echo "... src/OldSolver.o"
+	@echo "... src/OldSolver.i"
+	@echo "... src/OldSolver.s"
 	@echo "... src/Simulator.o"
 	@echo "... src/Simulator.i"
 	@echo "... src/Simulator.s"

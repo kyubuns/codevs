@@ -87,7 +87,7 @@ const MapData Simulator::createRouteMap(const MapData &map, const vector<Point> 
 	return route;
 }
 
-int Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies &enemies)
+vector<int> Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies &enemies)
 {
 	const MapData map(createMap(mapInfo, towers));
 	const MapData route(createRouteMap(map, mapInfo.starts, mapInfo.goals));
@@ -120,8 +120,8 @@ int Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies &
 	}
 
 	int time = 0;
-	int damage = 0;
 	int restEnemy = enemies.size();
+	vector<int> damage;
 
 	vector<ActEnemy> actEnemies;
 	actEnemies.reserve(enemies.size());
@@ -217,8 +217,8 @@ int Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies &
 				enemy.kill();
 				deadEnemy.push_back(enemyId);
 				restEnemy--;
-				damage++;
-				if(DEBUG) cout << "DAMAGE!! - " << enemyId << "("<< damage << ")" << endl;
+				damage.push_back(enemyId);
+				if(DEBUG) cout << "DAMAGE!! - " << enemyId << "("<< damage.size() << ")" << endl;
 			}
 		}
 		

@@ -162,8 +162,8 @@ bool Solver::canGoal(const MapData &fmap)
 	return true;
 }
 
-int Solver::simulate()
+vector<int> Solver::simulate()
 {
-	int result = Simulator::getInstance().run(stage.map, m_towers, level.enemies);
+	vector<int> result = Simulator::getInstance().run(stage.map, m_towers, level.enemies);
 	return result;
 }
