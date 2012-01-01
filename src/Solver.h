@@ -32,6 +32,7 @@ protected:
 	bool build(const Task &task);
 	const Towers &getTowers() { return m_towers; }
 	const MapData &getMap() { return m_map; }
+	int simulate();
 
 protected:
 	const StageData stage;

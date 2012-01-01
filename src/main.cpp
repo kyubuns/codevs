@@ -11,11 +11,6 @@ class OldSolver : public Solver
 public:
 	OldSolver(const StageData &stageData, const LevelData &levelData) : Solver(stageData, levelData) {}
 	void run();
-
-private:
-	static const int BUILD_TOWER = 1;
-	static const int CHECK_BUILD_HP = 4;
-	static const int CHECK_BUILD_TOWER = 2;
 };
 
 void OldSolver::run()
@@ -26,51 +21,59 @@ void OldSolver::run()
 	static const int dx[] = {-1,  0,  1,  1,  1,  0, -1 ,-1};
 	static const int dy[] = {-1, -1, -1,  0,  1,  1,  1,  0};
 	const MapData &map = getMap();
-	for(auto it = stage.map.starts.begin(), end = stage.map.starts.end(); it != end; ++it)
+	int towerMax = 1;
+	bool ok = false;
+	while(true)
 	{
-		while(true)
+		for(auto it = stage.map.starts.begin(), end = stage.map.starts.end(); it != end; ++it)
 		{
-			//近くにあるか確認
-			int towerCount = 0;
-			Point p = *it;
-			for(int i = 0; i < 8; ++i) if(map[p.x + dx[i]][p.y + dy[i]] == TOWER) towerCount++;
-			if(towerCount >= CHECK_BUILD_TOWER || (level.life >= CHECK_BUILD_HP && towerCount >= BUILD_TOWER)) break;
-
-			//置けるか確認
-			Task memo;
-			bool hoge = false;
-			for(int i = 0; i < 8; ++i)
+			while(true)
 			{
-				Task task = Task(Point(p.x + dx[i], p.y + dy[i]), 0, 0);
-				if(!check(task)) continue;
-				memo = task;
-				hoge = true;
-				break;
+				//近くにあるか確認
+				int towerCount = 0;
+				Point p = *it;
+				for(int i = 0; i < 8; ++i) if(map[p.x + dx[i]][p.y + dy[i]] == TOWER) towerCount++;
+				if(towerCount >= towerMax) break;
+
+				//置けるか確認
+				Task memo;
+				bool hoge = false;
+				for(int i = 0; i < 8; ++i)
+				{
+					Task task = Task(Point(p.x + dx[i], p.y + dy[i]), 0, 0);
+					if(!check(task)) continue;
+					memo = task;
+					hoge = true;
+					break;
+				}
+				if(!hoge) break;
+				build(memo);
 			}
-			if(!hoge) break;
-			build(memo);
 		}
-	}
 
-	//アップグレード
-	const Towers &towers = getTowers();
-	for(auto it = towers.begin(); it != towers.end(); ++it)
-	{
-		const Tower &tower = *it;
-		if(tower.level == rule::UPGRADE_MAX_LEVEL) continue;
-
-		Task task(tower);
-		task.level = max(rule::UPGRADE_MAX_LEVEL, task.level + 4);
-		for(int i=0;i<4;++i)
+		//アップグレード
+		const Towers &towers = getTowers();
+		for(auto it = towers.begin(); it != towers.end(); ++it)
 		{
-			if(task.level == tower.level) break;
-			if(check(task)) break;
-			task.level--;
-		}
-		if(task.level == tower.level) continue;
+			const Tower &tower = *it;
+			if(tower.level == rule::UPGRADE_MAX_LEVEL) continue;
 
-		build(task);
-		continue;
+			Task task(tower);
+			task.level = max(rule::UPGRADE_MAX_LEVEL, task.level + 4);
+			for(int i=0;i<4;++i)
+			{
+				if(task.level == tower.level) break;
+				if(check(task)) break;
+				task.level--;
+			}
+			if(task.level == tower.level) continue;
+
+			build(task);
+			continue;
+		}
+		if(towerMax == 8) break;
+		if(simulate()==0) break;
+		towerMax++;
 	}
 }
 
@@ -88,15 +91,18 @@ int main()
 		{
 			const LevelData levelData = Loader::LoadLevel();
 
-			/*
 			OldSolver solver(stageData, levelData);
+			/*
 			solver.run();
 			*/
 
-			//solver.printMap();
+			cout << s+1 << "-" << l+1 << endl;
+			solver.printMap();
+			/*
 			if(l==0)continue;
 			int result = Simulator::getInstance().run(stageData.map, levelData.towers, levelData.enemies);
 			cout << s+1 << " - " << l+1 << " => " << result << endl;
+			*/
 		}
 	}
 	return 0;

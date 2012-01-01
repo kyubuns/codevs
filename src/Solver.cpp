@@ -1,4 +1,5 @@
 #include "Solver.h"
+#include "Simulator.h"
 #include <iostream>
 #include <set>
 #include <queue>
@@ -159,4 +160,10 @@ bool Solver::canGoal(const MapData &fmap)
 		if(findGoal == false) return false;
 	}
 	return true;
+}
+
+int Solver::simulate()
+{
+	int result = Simulator::getInstance().run(stage.map, m_towers, level.enemies);
+	return result;
 }
