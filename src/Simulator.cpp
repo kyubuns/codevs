@@ -30,6 +30,24 @@ const MapData Simulator::createMap(const MapInfo &mapInfo, const Towers &towers)
 	return map;
 }
 
+bool Simulator::canMove(const MapData &route, const Point &o, int i) const
+{
+	using namespace mark;
+	if(rdir::cost[i] == 3)
+	{
+		//斜め移動できるか確認
+		int n = i+1; if(n>7) n-=8;
+		int b = i-1; if(b<0) b+=8;
+
+		Point np(o.x + rdir::x[n], o.y + rdir::y[n]);
+		Point bp(o.x + rdir::x[b], o.y + rdir::y[b]);
+		if(route[np.x][np.y] != EMPTY || route[bp.x][bp.y] != EMPTY) return false;
+	}
+	Point p(o.x + rdir::x[i], o.y + rdir::y[i]);
+	if(route[p.x][p.y] != EMPTY) return false;
+	return true;
+}
+
 const MapData Simulator::createRouteMap(const MapData &map, const vector<Point> &starts, const vector<Point> &goals) const
 {
 	using namespace mark;
@@ -44,10 +62,7 @@ const MapData Simulator::createRouteMap(const MapData &map, const vector<Point> 
 	//全てのゴールからスタートに向けてたどっていく
 	typedef pair<pair<int,int>, Point> NODE;
 	priority_queue<NODE, vector<NODE>, greater<NODE>> que;
-	for(int i=0; i<goals.size(); ++i)
-	{
-		que.push(make_pair(make_pair(0, GOAL), goals[i]));
-	}
+	for(int i=0; i<goals.size(); ++i) que.push(make_pair(make_pair(0, GOAL), goals[i]));
 
 	while(!que.empty())
 	{
@@ -61,19 +76,9 @@ const MapData Simulator::createRouteMap(const MapData &map, const vector<Point> 
 
 		for(int i=0;i<8;++i)
 		{
-			if(rdir::cost[i] == 3)
-			{
-				//斜め移動できるか確認
-				int n = i+1; if(n>7) n-=8;
-				int b = i-1; if(b<0) b+=8;
-			
-				Point np(o.x + rdir::x[n], o.y + rdir::y[n]);
-				Point bp(o.x + rdir::x[b], o.y + rdir::y[b]);
-				if(route[np.x][np.y] != EMPTY || route[bp.x][bp.y] != EMPTY) continue;
-			}
-			Point p(o.x + rdir::x[i], o.y + rdir::y[i]);
-			if(route[p.x][p.y] != EMPTY) continue;
+			if(!canMove(route, o, i)) continue;
 			int tmp = 7-(i+4)%8;
+			Point p(o.x + rdir::x[i], o.y + rdir::y[i]);
 			que.push(make_pair(make_pair(cost+rdir::cost[i], tmp), p));
 		}
 	}
@@ -112,73 +117,149 @@ void Simulator::run(const MapInfo &mapInfo, const Towers &towers, const Enemies 
 	int time = 0;
 	int damage = 0;
 	int restEnemy = enemies.size();
-	list<ActEnemy> activeEnemies;
-	while(restEnemy > 0 || !activeEnemies.empty())
+
+	vector<ActEnemy> actEnemies;
+	actEnemies.reserve(enemies.size());
+	for(int i=0;i<enemies.size();++i) actEnemies.push_back(ActEnemy(i, enemies[i]));
+
+	vector<ActTower> actTowers;
+	actTowers.reserve(towers.size());
+	for(int i=0;i<towers.size();++i) actTowers.push_back(ActTower(i, towers[i]));
+
+	while(restEnemy > 0)
 	{
-		cout << "time : " << time << endl;
-		//• 出現時刻になっていた場合、敵が所定の出現マスに出現します。
-		for(int i=0; i<enemies.size(); ++i)
+		cout << endl;
+		cout << "===== time : " << time << "=====" << endl;
+
+		list<int> moveEnemies;
+		list<int> deadEnemy;
+		for(int i=0; i<actEnemies.size(); ++i)
 		{
-			const Enemy &enemy = enemies[i];
-			if(enemy.time != time) continue;
+			//• 出現時刻になっていた場合、敵が所定の出現マスに出現します。
+			//• 敵が移動可能な場合、隣のマスに移動します。
+			ActEnemy &enemy = actEnemies[i];
+			const Point &p = enemy.getPoint();
+			const Point copy = enemy.getPoint();
+			int result = enemy.update(time);
+			if(result == 4)
+			{
+				moveEnemies.push_back(enemy.getId());
+				continue;
+			}
+			if(result < dir::cost[route[p.x][p.y]]) continue;
 
-			//出現時間
-			restEnemy--;
-			activeEnemies.push_back(ActEnemy(enemy));
-		}
-
-		//• 敵が移動可能な場合、隣のマスに移動します。
-		for(auto it=activeEnemies.begin(), end=activeEnemies.end(); it != end; ++it)
-		{
-			if(!it->update()) continue;
-
-			Point p = it->getPoint();
-			it->move(route[p.x][p.y]);
-			cout << "(" << p.x << "," << p.y << ") => (" << it->getPoint().x << "," << it->getPoint().y << ")" << endl;
+			enemy.move(route[p.x][p.y]);
+			moveEnemies.push_back(enemy.getId());
+			cout << "ENEMY" << enemy.getId() << " - (" << copy.x << "," << copy.y << ") => (";
+			cout << p.x << "," << p.y << ")" << endl;
 		}
 		
-		//• 攻撃可能な状態の場合、タワーと敵のマスのユークリッド距離が射程範囲と等しい、あるい はそれ未満であるマスにいる敵を列挙します
-		//• 射程範囲内に敵が複数いる場合、最も早い時刻に射程範囲内に入った敵(一度出て再度入っ た場合は、遅い時間が採用されます)を列挙します。
-		//• 同時に入った敵が複数いる場合は、最も最初にマップに出現した敵を列挙します。
-		//• 同時に出現した敵が複数いる場合は、標準入力で先に与えられた敵を対象として選びます。
-		//todo
+		list<pair<int, int>> attackEnemy;
+		for(int i=0;i<actTowers.size();++i)
+		{
+			ActTower &tower = actTowers[i];
+			//• タワーと敵のマスのユークリッド距離が射程範囲と等しい、あるい はそれ未満であるマスにいる敵を列挙します
+			//• 射程範囲内に敵が複数いる場合、最も早い時刻に射程範囲内に入った敵(一度出て再度入っ た場合は、遅い時間が採用されます)を列挙します。
+			//• 同時に入った敵が複数いる場合は、最も最初にマップに出現した敵を列挙します。
+			//• 同時に出現した敵が複数いる場合は、標準入力で先に与えられた敵を対象として選びます。
+			int r = tower.data.getR();
+			r = r*r;
+			for(auto it=moveEnemies.begin(); it != moveEnemies.end(); ++it)
+			{
+				int enemyId = *it;
+				ActEnemy &enemy = actEnemies[enemyId];
+
+				int tmpX = enemy.getPoint().x - tower.getPoint().x;
+				int tmpY = enemy.getPoint().y - tower.getPoint().y;
+				int tmpR = tmpX*tmpX + tmpY*tmpY;
+				if(r >= tmpR) tower.enterEnemy(enemyId, time, enemy.data);
+				else tower.leaveEnemy(enemyId);
+			}
+
+			int enemyId = tower.attack();
+			if(enemyId == -1) continue;
+
+			cout << "TOWER" << tower.getId() << " Ready" << endl;
+			cout << "     => Attack" << endl;
+			attackEnemy.push_back(make_pair(enemyId, tower.data.getPower()));
+		}
 		
 		//• 全ての攻撃可能なタワーが攻撃対象を選択した後、全てのタワーが一斉に攻撃対象に攻撃力
 		//	の値だけのダメージを与えます。
-		//todo
+		for(auto it=attackEnemy.begin(), end=attackEnemy.end(); it != end; ++it)
+		{
+			int enemyId = it->first;
+			int point = it->second;
+			ActEnemy &enemy = actEnemies[enemyId];
+
+			if(!enemy.isActive()) continue;
+			if(enemy.damage(point)) deadEnemy.push_back(enemyId);
+			if(!enemy.isActive()) restEnemy--;
+		}
 		
 		//• ライフが 1 以上の敵が防衛マスにたどり着いていた場合 (行動不能時間中である場合も含み ます)、プレイヤーのライフが 1 減り敵が消滅します。
-		for(auto it=activeEnemies.begin(); it != activeEnemies.end();)
+		for(auto it=moveEnemies.begin(); it != moveEnemies.end(); ++it)
 		{
-			Point &p = it->getPoint();
-			if(route[p.x][p.y] != mark::GOAL) { ++it; continue; }
+			ActEnemy &enemy = actEnemies[*it];
+			if(!enemy.isActive()) continue;
 
-			activeEnemies.erase(it++);
+			const Point &p = enemy.getPoint();
+			if(route[p.x][p.y] != mark::GOAL) continue;
+
+			enemy.kill();
+			deadEnemy.push_back(*it);
+			restEnemy--;
 			damage++;
 			cout << "DAMAGE!! - " << damage << endl;
 		}
 		
+		for(auto it=deadEnemy.begin(); it != deadEnemy.end(); ++it)
+		{
+			for(int i=0;i<actTowers.size();++i)
+			{
+				ActTower &tower = actTowers[i];
+				tower.leaveEnemy(*it);
+			}
+		}
+
 		time++;
 	}
 }
 
-ActEnemy::ActEnemy(const Enemy &enemy) : data(enemy), counter(0), point()
+ActEnemy::ActEnemy(int id, const Enemy &enemy) : data(enemy), point(), active(false), dead(false), id(id)
 {
-	resetCounter();
 	point = data.point;
+	life = data.life;
+	resetCounter();
 }
 
 void ActEnemy::resetCounter()
 {
-	counter = data.speed;
+	counter[0] = data.speed;
+	counter[1] = data.speed * 14 / 10;
 }
 
-//todo 斜め移動
-bool ActEnemy::update()
+int ActEnemy::update(int time)
 {
-	counter--;
-	if(counter > 0) return false;
-	return true;
+	//• 出現時刻になっていた場合、敵が所定の出現マスに出現します。
+	//• 敵が移動可能な場合、隣のマスに移動します。
+	bool bornFlag = false;
+	if(time == data.time)
+	{
+		cout << "Add Enemy : " << getId() << endl;
+		cout << "    Life  : " << life << endl;
+		cout << "    Speed : " << data.speed << endl;
+		active = true;
+		bornFlag = true;
+	}
+	if(!isActive()) return 0;
+
+	counter[0]--;
+	counter[1]--;
+	if(bornFlag)       return 4;
+	if(counter[0] > 0) return 1;
+	if(counter[1] > 0) return 2;
+	return 3;
 }
 
 void ActEnemy::move(int id)
@@ -187,3 +268,79 @@ void ActEnemy::move(int id)
 	point.y += dir::y[id];
 	resetCounter();
 }
+
+bool ActEnemy::damage(int point)
+{
+	cout << "    ENEMY" << getId() << " - Life : " << life;
+	life -= point;
+	cout << " => " << life << endl;
+	if(life < 0)
+	{
+		kill();
+		return true;
+	}
+	return false;
+}
+
+void ActEnemy::kill()
+{
+	dead = true;
+	cout << "ENEMY" << getId() << " - DEAD!" << endl;
+}
+
+ActTower::ActTower(int id, const Tower &tower) : data(tower), counter(0), id(id)
+{
+	resetCounter();
+	cout << "Add Tower : " << id << endl;
+	cout << "    Power : " << data.getPower() << endl;
+	cout << "    Speed : " << data.getSpeed() << endl;
+	cout << "    R     : " << data.getR() << endl;
+}
+
+void ActTower::resetCounter()
+{
+	counter = data.getSpeed();
+}
+
+void ActTower::enterEnemy(int id, int time, const Enemy &data)
+{
+	//• タワーと敵のマスのユークリッド距離が射程範囲と等しい、あるい はそれ未満であるマスにいる敵を列挙します
+	//• 射程範囲内に敵が複数いる場合、最も早い時刻に射程範囲内に入った敵(一度出て再度入っ た場合は、遅い時間が採用されます)を列挙します。
+	//• 同時に入った敵が複数いる場合は、最も最初にマップに出現した敵を列挙します。
+	//• 同時に出現した敵が複数いる場合は、標準入力で先に与えられた敵を対象として選びます。
+	for(auto it=targets.begin(), end=targets.end(); it!=end; ++it)
+	{
+		//既にリストにいたらスルー
+		if(it->second == id) return;
+	}
+
+	targets.insert(make_pair(make_pair(time, data.time), id));
+}
+
+void ActTower::leaveEnemy(int id)
+{
+	for(auto it=targets.begin(), end=targets.end(); it!=end; ++it)
+	{
+		if(it->second != id) continue;
+		targets.erase(it);
+		return;
+	}
+}
+
+int ActTower::getTargetId()
+{
+	if(targets.empty()) return -1;
+	return targets.begin()->second;
+}
+
+int ActTower::attack()
+{
+	counter--;
+	if(counter > 0) return -1;
+
+	//cout << "TOWER" << id << " Ready" << endl;
+	int result = getTargetId();
+	if(result != -1) resetCounter();
+	return result;
+}
+

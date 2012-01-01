@@ -27,9 +27,6 @@ CMAKE_COLOR_MAKEFILE:BOOL=ON
 //CXX compiler.
 CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/clang++
 
-//Path to a program.
-CMAKE_CXX_COMPILER_WITH_PATH:FILEPATH=/usr/bin/clang++
-
 //Flags used by the compiler during all build types.
 CMAKE_CXX_FLAGS:STRING=-std=c++0x -stdlib=libc++
 
@@ -203,8 +200,6 @@ CMAKE_CPACK_COMMAND:INTERNAL=/usr/local/Cellar/cmake/2.8.6/bin/cpack
 CMAKE_CTEST_COMMAND:INTERNAL=/usr/local/Cellar/cmake/2.8.6/bin/ctest
 //ADVANCED property for variable: CMAKE_CXX_COMPILER
 CMAKE_CXX_COMPILER-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: CMAKE_CXX_COMPILER_WITH_PATH
-CMAKE_CXX_COMPILER_WITH_PATH-ADVANCED:INTERNAL=1
 CMAKE_CXX_COMPILER_WORKS:INTERNAL=1
 //ADVANCED property for variable: CMAKE_CXX_FLAGS
 CMAKE_CXX_FLAGS-ADVANCED:INTERNAL=1

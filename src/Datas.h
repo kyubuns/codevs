@@ -6,7 +6,10 @@ using namespace std;
 
 namespace rule
 {
-	static const array<int, 3> COST = {10, 15, 20};
+	static const array<int, 3> COST  = {10, 15, 20};
+	static const array<int, 3> R     = {4, 5, 2};
+	static const array<int, 3> POWER = {10, 20, 3};
+	static const array<int, 3> SPEED = {10, 20, 20};
 	static const int UPGRADE_MAX_LEVEL = 4;
 }
 
@@ -95,9 +98,25 @@ struct Tower
 {
 	Point point;
 	int level, kind;
+	int r, power, speed;
 
 	Tower(const Point &point, int level, int kind) : point(point), level(level), kind(kind) {}
 	Tower(const Task &task) : point(task.point), level(task.level), kind(task.kind) {}
+
+	inline int getR() const
+	{
+		return rule::R[kind] + level;
+	}
+
+	inline int getPower() const
+	{
+		return rule::POWER[kind] * (1+level);
+	}
+
+	inline int getSpeed() const
+	{
+		return (kind==2)?rule::SPEED[kind] : rule::SPEED[kind]-(2*level);
+	}
 };
 typedef vector<Tower> Towers;
 inline Task::Task(const Tower &tower) : point(tower.point), level(tower.level), kind(tower.kind) {}
