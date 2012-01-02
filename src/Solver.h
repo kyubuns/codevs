@@ -21,8 +21,9 @@ class Solver
 {
 public:
 	Solver(const StageData &stageData, const LevelData &levelData);
+	Solver(const StageData &stageData, const LevelData &levelData, int money);
 	virtual ~Solver();
-	virtual void run() = 0;
+	//virtual void run() = 0;
 	void printMap();
 
 protected:

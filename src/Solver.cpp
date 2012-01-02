@@ -58,6 +58,11 @@ Solver::Solver(const StageData &stageData, const LevelData &levelData)
 {
 }
 
+Solver::Solver(const StageData &stageData, const LevelData &levelData, int money)
+: stage(stageData), level(levelData), wallet(money), m_towers(level.towers), m_map(createMap(stage.map, m_towers))
+{
+}
+
 Solver::~Solver()
 {
 	taskList.output();
