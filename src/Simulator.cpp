@@ -43,10 +43,11 @@ bool Simulator::canMove(const MapData &route, const Point &o, int i) const
 
 		Point np(o.x + rdir::x[n], o.y + rdir::y[n]);
 		Point bp(o.x + rdir::x[b], o.y + rdir::y[b]);
-		if(route[np.x][np.y] != EMPTY || route[bp.x][bp.y] != EMPTY) return false;
+		if((route[np.x][np.y] != EMPTY && route[np.x][np.y] != START)
+				|| (route[bp.x][bp.y] != EMPTY && route[bp.x][bp.y] != START)) return false;
 	}
 	Point p(o.x + rdir::x[i], o.y + rdir::y[i]);
-	if(route[p.x][p.y] != EMPTY) return false;
+	if(route[p.x][p.y] != EMPTY && route[p.x][p.y] != START) return false;
 	return true;
 }
 
