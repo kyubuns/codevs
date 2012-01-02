@@ -10,7 +10,7 @@ using namespace std;
 
 static const array<int, 8> dx   = {{  1,  1,  0, -1, -1, -1,  0,  1}};
 static const array<int, 8> dy   = {{  0, -1, -1, -1,  0,  1,  1,  1}};
-static const array<int, 8> dcost= {{ 10, 14, 10, 14, 10, 14, 10, 14}};
+static const array<int, 8> dcost= {{ 2, 3, 2, 3, 2, 3, 2, 3}};
 
 class MazeSolver : public Solver
 {
@@ -36,7 +36,7 @@ private:
 bool MazeSolver::canMove(const MapData &route, const Point &o, int i) const
 {
 	using namespace mark;
-	if(dcost[i] == 14)
+	if(dcost[i] == dcost[1])
 	{
 		//斜め移動できるか確認
 		int n = i+1; if(n>7) n-=8;
@@ -160,7 +160,7 @@ vector<vector<int>> MazeSolver::createDistMap(const Point &goal)
 		if(distmap[o.x][o.y] != -1) continue;
 		distmap[o.x][o.y] = cost;
 
-		for(int i=0;i<8;++i)
+		for(int i=0;i<8;i++)
 		{
 			Point p(o.x+dx[i], o.y+dy[i]);
 			if(!canMove(map, o, i)) continue;
@@ -192,7 +192,6 @@ void MazeSolver::createMaze()
 	
 	createOnlyGoal();
 	const Point goal = findGoal();
-	vector<vector<int>> dismap(createDistMap(goal));
 	
 	typedef pair<int, Point> NODE;
 	priority_queue<NODE, vector<NODE>, greater<NODE>> que;
@@ -210,17 +209,12 @@ void MazeSolver::createMaze()
 		checkedmap[o.x][o.y] = 1;
 		if(map[o.x][o.y] == GOAL) continue;
 
+		vector<vector<int>> dismap(createDistMap(goal));
 		set<pair<int, Point>> tmp;
 		for(int i=0;i<8;i+=2)
 		{
 			Point p(o.x+dx[i], o.y+dy[i]);
-			if(map[p.x][p.y]==GOAL)
-			{
-				tmp.clear();
-				tmp.insert(make_pair(dismap[p.x][p.y], p));
-				break;
-			}
-			if(map[p.x][p.y]!=EMPTY && map[p.x][p.y]!=START) continue;
+			if(map[p.x][p.y]!=EMPTY && map[p.x][p.y]!=START && map[p.x][p.y]!=GOAL) continue;
 			if(checkedmap[p.x][p.y] == 1) continue;
 			tmp.insert(make_pair(dismap[p.x][p.y], p));
 		}
@@ -242,17 +236,7 @@ void MazeSolver::createMaze()
 void MazeSolver::run(int point)
 {
 	createMaze();
-
-	int wdt = 0;
-	while(true)
-	{
-		wdt++;
-		if(wdt>300) break;
-
-		vector<int> result = simulate();
-		if(result.size() <= point) break;
-		upgrade();
-	}
+	/*
 	vector<int> result = simulate();
 	if(result.size() > point)
 	{
@@ -265,6 +249,18 @@ void MazeSolver::run(int point)
 			}
 		}
 	}
+	*/
+
+	int wdt = 0;
+	while(true)
+	{
+		wdt++;
+		if(wdt>300) break;
+
+		vector<int> result = simulate();
+		if(result.size() <= point) break;
+		upgrade();
+	}
 	wdt = 0;
 	while(true)
 	{
@@ -275,7 +271,6 @@ void MazeSolver::run(int point)
 		if(result.size() <= point) break;
 		upgrade();
 	}
-	result = simulate();
 }
 
 void MazeSolver::upgrade()
@@ -304,7 +299,7 @@ int main()
 {
 	ios_base::sync_with_stdio(false);
 	bool DEBUG = false;
-	DEBUG = true;
+	//DEBUG = true;
 
 	//ステージ数
 	int s=0,S;
@@ -322,10 +317,10 @@ int main()
 			}
 		}
 	}
-	int memoMoney = 0;
 	int memoLife = 10;
 	for(;s<S; ++s)
 	{
+		int memoMoney = 0;
 		const StageData stageData = Loader::LoadStage();
 		for(int l=0; l<stageData.level; ++l)
 		{
@@ -333,67 +328,37 @@ int main()
 			int a = s+1;
 			int b = l+1;
 			if(DEBUG) b--;
-//			if(l!=0) continue;
+			//if(l!=0) continue;
 
-			int money = 3000;
-			if(a == 57 && b == 1)	money = 5000;
-			if(a >= 60)				money = 3500;
-			//---
-			if(a == 60 && b == 2)	money = 6000;
-			if(a >= 67 && b == 1)	money = 4500;
-			if(a == 67 && b == 1)	money = 5000;
-			if(a == 67 && b == 6)	money = 4000;
-			if(a >= 70)				money = 4000;
-			if(a == 72 && b == 5)	money = 7000;
-			if(a == 73 && b == 2)	money = 5000;
-			if(a == 74 && b == 3)	money = 7000;
-			if(a >= 75)				money = 4000;
-			if(money > levelData.money) money = levelData.money;
-			/*
-			77-1
 			int money = 3500;
-			if(a == 57 && b == 1)	money = 5000;
-			if(a == 60 && b == 2)	money = 6000;
-			if(a >= 67 && b == 1)	money = 5000;
-			if(a >= 70)				money = 4500;
-			if(a == 72 && b == 5)	money = 5000;
-			if(a == 74 && b == 3)	money = 5000;
-			if(a >= 75)				money = 5000;
-			*/
+			if(a == 57 && b == 1)   money = 5000;
+			if(a == 60 && b == 2)   money = 6000;
+			if(a >= 67 && b == 1)   money = 5000;
+			if(a >= 70)                             money = 4500;
+			if(a == 72 && b == 5)   money = 5000;
+			if(a == 74 && b == 3)   money = 5000;
+			if(a >= 75)                             money = 5000;
 			if(money > levelData.money) money = levelData.money;
-			//cout << "money : " << money << endl;
+
 			if(!DEBUG)
 			{
 				MazeSolver solver(stageData, levelData, money);
-	//			cout << s+1 << "-" << l+1 << " : ";
-	//			solver.printMap();
+			//	cout << s+1 << "-" << l+1 << endl;
+			//	cout << "MONEY : " << levelData.money << endl;
+			//	solver.printMap();
 				int point = 0;
 				solver.run(point);
-	//			solver.printMap();
+			//	solver.printMap();
 			}
 			else
 			{
-				if(memoMoney == levelData.money && memoLife == levelData.life) continue;
-				cout << (l==0?s:s+1) << "-" << (l==0?25:l);
-				if(l<10&&l>0) cout << " ";
-				cout << " ";
-				cout << memoLife - levelData.life;
-				cout << "(" << levelData.life << ")";
-				cout << " ";
-				cout << memoMoney - levelData.money;
-				cout << "(" << levelData.money << ")";
-				cout << " < ";
-				cout << money;
-				if(levelData.money != money)
+				if(l==0) memoMoney = levelData.money;
+				if(l==24)
 				{
-					if(memoMoney-levelData.money <= money*9/10) cout << " [ok]";
-					else cout << "\x1b[31m" << " [" << (memoMoney-levelData.money-money) << "]" << "\x1b[39m";
+					cout << s+1 << " - " << memoMoney - levelData.money;
+					cout << "(" << levelData.money << ")" ;
+					cout << endl;
 				}
-				cout << endl;
-				for(int i=0;i<memoMoney-levelData.money;i+=100) cout << "+";
-				cout << endl;
-				memoMoney = levelData.money;
-				memoLife = levelData.life;
 			}
 		}
 	}
