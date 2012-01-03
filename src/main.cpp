@@ -7,7 +7,7 @@
 #include "Solver.h"
 #include "OldSolver.h"
 using namespace std;
-#define DEBUG_FLAG true
+#define DEBUG_FLAG false
 bool DEBUG = false;
 
 static const array<int, 8> dx   = {{  1,  1,  0, -1, -1, -1,  0,  1}};
@@ -45,7 +45,7 @@ private:
 	vector<vector<int>> createDistMap(const Point &goal, int kind);
 	void debugPrint(const vector<vector<int>> &map) const;
 	const Point createMaze();
-	void upgrade(int r, const Point &goal, const set<Point> &starts);
+	void upgrade();
 	int upgradeCir(const Point &o, int r);
 	Task createTask(const Point &p);
 
@@ -286,7 +286,15 @@ void MazeSolver::run(int point)
 	}
 	if(damage>0)
 	{
-
+		int wdt = 0;
+		while(wdt++<100)
+		{
+			vector<int> result = simulate();
+			damage = result.size();
+			if(damage == 0) break;
+			if(DEBUG_FLAG) cout << "RESULT : " << result.size() << endl;
+			upgrade();
+		}
 	}
 
 	/*
@@ -347,20 +355,25 @@ void MazeSolver::run(int point)
 	}
 }
 
-void MazeSolver::upgrade(int r, const Point &goal, const set<Point> &starts)
+void MazeSolver::upgrade()
 {
-	//cout << "Upgrade : r = " << r << endl;
-	//ゴール
-	//cout << "-";
-	//goal.print();
-	upgradeCir(goal, r);
-	
-	//スタート地点
-	for(auto it=starts.begin(), end=starts.end(); it!=end; ++it)
+	static std::mt19937 engine(19216801);
+
+	//アップグレード
+	const Towers &towers = getTowers();
+	std::uniform_int_distribution<int> randno( 0, towers.size()-1 ) ;
+	if(towers.size()==0) return;
+	for(int i=0;i<10;++i)
 	{
-		//cout << "-";
-		//it->print();
-		upgradeCir(*it, r);
+		const Tower &tower = towers[randno(engine)];
+		if(tower.kind == 2) continue;
+		if(tower.level == rule::UPGRADE_MAX_LEVEL) continue;
+
+		Task task(tower);
+		task.level += 4;
+
+		if(!check(task)) continue;
+		build(task);
 	}
 }
 
