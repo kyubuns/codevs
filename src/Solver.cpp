@@ -6,6 +6,11 @@
 using namespace std;
 
 //==========Wallet==========
+Wallet::Wallet(int money, int maxMoney) : m_money(money), m_maxMoney(maxMoney)
+{
+	if(m_money > m_maxMoney) m_money = m_maxMoney;
+}
+
 int Wallet::calcCost(int kind, int oldLevel, int newLevel) const
 {
 	int cost = 0;
@@ -38,6 +43,7 @@ bool Wallet::buy(const Task &task, Towers *towers)
 	if(m_money < cost || cost == 0) return false;
 
 	m_money -= cost;
+	m_maxMoney -= cost;
 	for(int i=0; i<towers->size(); ++i)
 	{
 		Tower &tower = (*towers)[i];
@@ -54,16 +60,20 @@ bool Wallet::buy(const Task &task, Towers *towers)
 
 //==========Solver==========
 Solver::Solver(const StageData &stageData, const LevelData &levelData)
-: stage(stageData), level(levelData), wallet(level.money), m_towers(level.towers), m_map(createMap(stage.map, m_towers))
+: stage(stageData), level(levelData), wallet(level.money, level.money), m_towers(level.towers), m_map(createMap(stage.map, m_towers))
 {
 }
 
 Solver::Solver(const StageData &stageData, const LevelData &levelData, int money)
-: stage(stageData), level(levelData), wallet(money), m_towers(level.towers), m_map(createMap(stage.map, m_towers))
+: stage(stageData), level(levelData), wallet(money, level.money), m_towers(level.towers), m_map(createMap(stage.map, m_towers))
 {
 }
 
 Solver::~Solver()
+{
+}
+
+void Solver::result()
 {
 	taskList.output();
 }
@@ -77,7 +87,13 @@ void Solver::printMap()
 	{
 		for(int w=0;w<W;++w)
 		{
+			if(m_map[w][h] == mark::WALL) cout << "\x1b[47m";
+			if(m_map[w][h] == mark::TOWER) cout << "\x1b[43m";
+			if(m_map[w][h] == mark::START) cout << "\x1b[34m";
+			if(m_map[w][h] == mark::GOAL) cout << "\x1b[35m";
 			cout << ((m_map[w][h]==mark::EMPTY)?' ':m_map[w][h]);
+			cout << "\x1b[39m";
+			cout << "\x1b[49m";
 		}
 		cout << endl;
 	}
@@ -94,6 +110,7 @@ bool Solver::check(const Task &task)
 	{
 		Tower &tower = m_towers[i];
 		if(tower.point == task.point && tower.kind == task.kind && tower.level >= task.level) return false;
+		if(tower.point == task.point && tower.kind != task.kind) return false;
 	}
 	if(task.kind != -1 && !wallet.check(task, m_towers)) return false;
 	if(task.level != -1 && task.level > rule::UPGRADE_MAX_LEVEL) return false;

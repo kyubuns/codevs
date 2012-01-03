@@ -244,7 +244,8 @@ ActEnemy::ActEnemy(int id, const Enemy &enemy) : data(enemy), point(), id(id), a
 {
 	point = data.point;
 	life = data.life;
-	resetCounter();
+	counter[0] = data.speed + 1;
+	counter[1] = data.speed * 14 / 10 + 1;
 }
 
 void ActEnemy::resetCounter()

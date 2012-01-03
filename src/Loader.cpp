@@ -40,7 +40,7 @@ const StageData Loader::LoadStage()
 	return StageData(MapInfo(W, H, mapData, starts, goals), L);
 }
 
-const LevelData Loader::LoadLevel()
+const LevelData Loader::LoadLevel(int stage, int level)
 {
 	//ライフ, 資金, タワーの数, 敵の数
 	int Lp, M, T, E;
@@ -75,6 +75,6 @@ const LevelData Loader::LoadLevel()
 		throw "check is not END";
 	}
 
-	return LevelData(Lp, M, towers, enemies);
+	return LevelData(stage, level, Lp, M, towers, enemies);
 }
 

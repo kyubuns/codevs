@@ -132,10 +132,11 @@ typedef vector<Enemy> Enemies;
 
 struct LevelData
 {
+	int stage, level;
 	int life, money;
 	Towers towers;
 	Enemies enemies;
 
-	LevelData(int life, int money, const Towers &towers, const Enemies &enemies) : life(life), money(money), towers(towers), enemies(enemies) {}
+	LevelData(int stage, int level, int life, int money, const Towers &towers, const Enemies &enemies) : stage(stage), level(level), life(life), money(money), towers(towers), enemies(enemies) {}
 };
 
