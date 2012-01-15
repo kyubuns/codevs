@@ -1,6 +1,7 @@
 #include "OldSolver.h"
 #include <set>
 
+//敵の出現マスに隣接した場所にラピットタワーのlv4を1つだけ配置する
 void OldSolver::run()
 {
 	using namespace mark;

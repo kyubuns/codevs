@@ -4,6 +4,7 @@
 #include <vector>
 using namespace std;
 
+//タスクリストを管理し、ゲームの出力フォーマットに合わせて出力
 void TaskList::addTask(const Task &task)
 {
 	m_tasks.push_back(task);
