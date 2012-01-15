@@ -82,12 +82,10 @@ void callRandSolver(int s)
 			cout.flush();
 			continue;
 		}
-		threads[0] = thread(bind(threadMain, &solvers[0], &results[0], false));
-		threads[1] = thread(bind(threadMain, &solvers[1], &results[1], false));
-		threads[2] = thread(bind(threadMain, &solvers[2], &results[2], false));
-		threads[3] = thread(bind(threadMain, &solvers[3], &results[3], true));
-		threads[4] = thread(bind(threadMain, &solvers[4], &results[4], true));
-		threads[5] = thread(bind(threadMain, &solvers[5], &results[5], true));
+		for(int i=0;i<6;++i)
+		{
+			threads[i] = thread(bind(threadMain, &solvers[i], &results[i], (i<3)));
+		}
 		score.insert(make_pair(make_pair(point, 0), -1));
 		if(point < levelData.life && l+1 >= 20)
 		{
@@ -107,13 +105,12 @@ void callRandSolver(int s)
 		int no = score.begin()->second;
 		if(no==-1)
 		{
+			//ダメージ食らった方が
 			cout << "0" << endl;
 			cout.flush();
-			Logger::write("hoge!\n");
 			continue;
 		}
-		if(score.begin()->first.first) Logger::write("Damage:"+boost::lexical_cast<string>(score.begin()->first.first)+"\n");
-		Logger::write("\n");
+		solvers[no].result();
 	}
 }
 
