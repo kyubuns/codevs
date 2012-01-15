@@ -1,0 +1,17 @@
+プログラミングコンテストcodevsで使用したソースコード
+学生ランキングの16位という救いようのない結果を出すことができる。
+( http://codevs.jp/ranking-students.html )
+
+Requirements
+LLVM 3.0
+Boost 1.48.0
+cmake
+
+Installation
+$ git clone git://github.com/kyubuns/coodevs.git
+$ cd codevs/
+$ cmake .
+$ make
+
+動作確認
+$ ./codevs.out < input80.txt
