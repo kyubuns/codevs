@@ -7,8 +7,8 @@ using namespace std;
 namespace rule
 {
 	static const array<int, 3> COST  = {{10, 15, 20}};
-	static const array<int, 3> R     = {{4, 5, 2}};
-	static const array<int, 3> POWER = {{10, 20, 3}};
+	static const array<int, 3> R     = {{ 4,  5,  2}};
+	static const array<int, 3> POWER = {{10, 20,  3}};
 	static const array<int, 3> SPEED = {{10, 20, 20}};
 	static const int UPGRADE_MAX_LEVEL = 4;
 }

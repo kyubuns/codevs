@@ -10,6 +10,7 @@ public:
 	bool check(const Task &task, const Towers &towers) const;
 	bool buy(const Task &task, Towers *towers);
 	void setMaxMoney() { m_money = m_maxMoney; }
+	int getUseMoney() const { return m_useMoney; }
 
 private:
 	int calcCost(int kind, int oldLevel, int newLevel) const;
@@ -17,6 +18,7 @@ private:
 private:
 	int m_money;
 	int m_maxMoney;
+	int m_useMoney;
 };
 
 class Solver

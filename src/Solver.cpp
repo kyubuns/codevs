@@ -1,12 +1,13 @@
 #include "Solver.h"
 #include "Simulator.h"
+#include "Logger.h"
 #include <iostream>
 #include <set>
 #include <queue>
 using namespace std;
 
 //==========Wallet==========
-Wallet::Wallet(int money, int maxMoney) : m_money(money), m_maxMoney(maxMoney)
+Wallet::Wallet(int money, int maxMoney) : m_money(money), m_maxMoney(maxMoney), m_useMoney(0)
 {
 	if(m_money > m_maxMoney) m_money = m_maxMoney;
 }
@@ -44,6 +45,7 @@ bool Wallet::buy(const Task &task, Towers *towers)
 
 	m_money -= cost;
 	m_maxMoney -= cost;
+	m_useMoney += cost;
 	for(int i=0; i<towers->size(); ++i)
 	{
 		Tower &tower = (*towers)[i];
@@ -105,20 +107,20 @@ bool Solver::check(const Task &task)
 	const Point &p = task.point;
 
 	if(m_map[task.point.x][task.point.y] != mark::EMPTY
-			&& m_map[task.point.x][task.point.y] != mark::TOWER) return false;
+			&& m_map[task.point.x][task.point.y] != mark::TOWER) { Logger::write("a"); return false; }
 	for(int i=0;i<m_towers.size();++i)
 	{
 		Tower &tower = m_towers[i];
-		if(tower.point == task.point && tower.kind == task.kind && tower.level >= task.level) return false;
-		if(tower.point == task.point && tower.kind != task.kind) return false;
+		if(tower.point == task.point && tower.kind == task.kind && tower.level >= task.level){ Logger::write("b");  return false; }
+		if(tower.point == task.point && tower.kind != task.kind) { Logger::write("c"); return false;}
 	}
-	if(task.kind != -1 && !wallet.check(task, m_towers)) return false;
-	if(task.level != -1 && task.level > rule::UPGRADE_MAX_LEVEL) return false;
+	if(task.kind != -1 && !wallet.check(task, m_towers)) { Logger::write("d"); return false; }
+	if(task.level != -1 && task.level > rule::UPGRADE_MAX_LEVEL) { Logger::write("e"); return false; }
 
 	m_map[p.x][p.y] = mark::TOWER;
 	bool check = canGoal(m_map);
 	m_map[p.x][p.y] = mark::EMPTY;
-	if(!check) return false;
+	if(!check) { Logger::write("f"); return false; }
 
 	return true;
 }
@@ -127,7 +129,7 @@ bool Solver::build(const Task &task)
 {
 	const Point &p = task.point;
 
-	if(!wallet.buy(task, &m_towers)) return false;
+	if(!wallet.buy(task, &m_towers)) { Logger::write("g"); return false; }
 	taskList.addTask(task);
 	m_map[p.x][p.y] = mark::TOWER;
 	return true;

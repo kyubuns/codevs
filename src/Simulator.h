@@ -14,6 +14,17 @@ public:
 	const Point &getPoint() const { return point; }
 	int getId() const { return id; }
 
+	ActEnemy operator=(const ActEnemy& enemy)
+	{
+		ActEnemy t = ActEnemy(id, data);
+		t.point = point;
+		t.counter = counter;
+		t.id = id;
+		t.life = life;
+		t.active = active;
+		t.dead = dead;
+		return t;
+	}
 public:
 	const Enemy data;
 
